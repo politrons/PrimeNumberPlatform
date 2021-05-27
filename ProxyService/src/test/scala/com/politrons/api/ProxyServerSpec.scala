@@ -1,17 +1,18 @@
 package com.politrons.api
 
-import com.twitter.util.{Await, Future}
-import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
-
 import com.twitter.concurrent.AsyncStream
-import com.twitter.finagle.http.Request
 import com.twitter.finagle.{Http, http}
 import com.twitter.io.{Buf, Reader}
 import com.twitter.util.{Await, Future}
+import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
+import scala.concurrent.duration._
+import scala.concurrent.Promise
 
-class ProxyServerIT extends FeatureSpec with GivenWhenThen with BeforeAndAfterAll {
+class ProxyServerSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfterAll {
 
   val port = 1981
+
+  val promise: Promise[String] = Promise()
 
   feature("ProxyServer to return a stream with the prime numbers ") {
     scenario("ProxyServer prime endpoint") {
@@ -25,28 +26,30 @@ class ProxyServerIT extends FeatureSpec with GivenWhenThen with BeforeAndAfterAl
       //TODO:Once we have the logic to communicate to the other service add a mock here
 
       When("I invoke the endpoint /prime")
-      val future: Future[Unit] = client(http.Request(http.Method.Get, "/prime")).flatMap {
+      client(http.Request(http.Method.Get, "/prime")).flatMap {
         response =>
           fromReader(response.reader) foreach {
             case Buf.Utf8(buf) =>
-              println(buf)
+              promise.success(buf)
           }
       }
-
-
-      Await.result(future)
-      Thread.sleep(10000000)
-
       Then("I receive the prime numbers in the stream")
+      val prime = scala.concurrent.Await.result(promise.future, 30 seconds)
+      assert(prime != null)
     }
   }
 
 
+  /**
+   * Recursive method with escape condition in case the reader has None elements.
+   * Otherwise we return a AsyncStream[Buf] and we subscribe again to the next
+   * element of the stream to read with [reader.read(Int.MaxValue)]
+   */
   def fromReader(reader: Reader): AsyncStream[Buf] =
     AsyncStream.fromFuture(reader.read(Int.MaxValue)).flatMap {
       case None =>
         AsyncStream.empty
-      case Some(a) =>
-        a +:: fromReader(reader)
+      case Some(buf) =>
+        buf +:: fromReader(reader)
     }
 }

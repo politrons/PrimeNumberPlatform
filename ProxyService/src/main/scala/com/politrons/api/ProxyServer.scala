@@ -31,18 +31,12 @@ object ProxyServer {
       case "/prime" =>
         val buf = Buf.Utf8("hello world")
         scala.concurrent.Future {
+          //TODO:Add logic of validation
+          //TODO:Add logic of communication with prime number service.
+
           while (true) {
+            writable.write(buf)
             Thread.sleep(1000)
-            writable.write(buf)
-            writable.write(buf)
-            writable.write(buf)
-            writable.write(buf)
-            writable.write(buf)
-            writable.write(buf)
-            writable.write(buf)
-            writable.write(buf)
-            writable.write(buf)
-            writable.write(buf)
           }
         }
         Future.value(Response(req.version, Status.Ok, writable))
