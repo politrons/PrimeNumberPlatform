@@ -15,10 +15,14 @@ class PrimeNumberServiceImplSpec extends FeatureSpec with GivenWhenThen with Bef
       Given("An instance of the service")
       val service = new PrimeNumberServiceImpl()
       When("I invoke to get findPrimeNumbers ")
+      var primeNumberCount = 0
       val observer: StreamObserver[PrimeNumberRequest] = service.findPrimeNumbers(new StreamObserver[PrimeNumberResponse]() {
         override def onNext(response: PrimeNumberResponse): Unit = {
           System.out.println(s"Prime number response:${response.getValue}")
-          promise.success(response.getValue)
+          primeNumberCount += 1
+          if(primeNumberCount >=7){
+            promise.success(response.getValue)
+          }
         }
 
         override def onError(t: Throwable): Unit = {

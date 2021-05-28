@@ -24,7 +24,7 @@ mvn clean install
 ````
 
 
-## How to run it
+## How to run
 
 After compile the module, go to the target fold and run the fatjar generated invoking the main class
 
