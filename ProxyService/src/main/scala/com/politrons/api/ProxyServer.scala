@@ -2,10 +2,10 @@ package com.politrons.api
 
 import com.politrons.grpc.PrimerNumberClient
 import com.twitter.finagle.http.{Request, Response, Status}
-import com.twitter.finagle.{Http, Service, http}
+import com.twitter.finagle.{Http, ListeningServer, Service, http}
 import com.twitter.io.{Buf, Reader}
-import com.twitter.util.Future
-import zio.{Has, Runtime, ZIO, ZLayer}
+import com.twitter.util.{Awaitable, Future}
+import zio.{Has, Runtime, Task, ZIO, ZLayer, ZManaged}
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -22,30 +22,47 @@ object ProxyServer {
 
   private val writable: Reader.Writable = Reader.writable()
 
-  //TODO:Pass PrimerNumberClient as a dependency to the ProxyServer
-  private val primeNumberClient = PrimerNumberClient()
-
-  def start(port: Int) {
-    Http.server
-      .withStreaming(enabled = true)
-      .serve(s"0.0.0.0:$port", service)
+  def main(args: Array[String]): Unit = {
+    val serverProgram = start(9995)
+    Runtime.global.unsafeRun(serverProgram.provideLayer(ZLayer.succeed(PrimerNumberClient())))
   }
 
-  val service: Service[Request, Response] = (req: http.Request) => {
-    req.path match {
-      case "/prime/:number" =>
-        val primeNumber = req.getParam("number")
-        val buf = Buf.Utf8(primeNumber)
-        //TODO:Change Scala future for ZIO Fiber
-        scala.concurrent.Future {
-          //TODO:Add logic of validation
-          val primeNumberProgram: ZIO[Has[Reader.Writable], Throwable, Unit] =
-            primeNumberClient.findPrimeNumbers(primeNumber)
-          Runtime.global.unsafeRun(primeNumberProgram.provideLayer(ZLayer.succeed(writable)))
-        }
-        Future.value(Response(req.version, Status.Ok, writable))
+  def start(port: Int): ZIO[Has[PrimerNumberClient], Throwable, Unit] = {
+    (for {
+      primeNumberClient <- ZManaged.service[PrimerNumberClient].useNow
+      service <- createService(primeNumberClient)
+      _ <- createServer(port, service)
+    } yield ()).catchAll { t =>
+      println(s"[ProxyServer] Error initializing. Caused by $t")
+      ZIO.fail(t)
     }
   }
 
+  private def createServer(port: Int, service: Service[Request, Response]): Task[ListeningServer] = {
+    ZIO.effect {
+      Http.server
+        .withStreaming(enabled = true)
+        .serve(s"0.0.0.0:$port", service)
+    }
+  }
 
+  def createService(client: PrimerNumberClient): Task[Service[Request, Response]] =
+    ZIO.effect {
+      (req: http.Request) => {
+        req.path match {
+          case "/prime/:number" =>
+            val primeNumber = req.getParam("number")
+            val buf = Buf.Utf8(primeNumber)
+            //TODO:Change Scala future for ZIO Fiber
+            scala.concurrent.Future {
+              //TODO:Add logic of validation
+              //TODO:Pass PrimerNumberClient as a dependency to the ProxyServer
+              val primeNumberProgram: ZIO[Has[Reader.Writable], Throwable, Unit] =
+              client.findPrimeNumbers(primeNumber)
+              Runtime.global.unsafeRun(primeNumberProgram.provideLayer(ZLayer.succeed(writable)))
+            }
+            Future.value(Response(req.version, Status.Ok, writable))
+        }
+      }
+    }
 }
