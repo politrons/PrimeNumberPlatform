@@ -17,3 +17,9 @@ which provide the features of have Pure functional programs with side effect con
 * I use [scalatest](https://www.scalatest.org) framework to design the unit and IT test in our system.
 the whole batery of test must be executed during the maven test phase, but in case you want to run the test
   with the IDE you can take a look to the test [here](src/test/scala)
+* To run all battery test you must run
+
+````
+mvn clean install
+````
+

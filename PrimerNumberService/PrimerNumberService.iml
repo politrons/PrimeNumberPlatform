@@ -14,7 +14,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="GRpcContract" />
-    <orderEntry type="module" module-name="GRpcContract" />
     <orderEntry type="library" name="Maven: io.grpc:grpc-netty:1.5.0" level="project" />
     <orderEntry type="library" name="Maven: io.grpc:grpc-core:1.5.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.errorprone:error_prone_annotations:2.0.19" level="project" />

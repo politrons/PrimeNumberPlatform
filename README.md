@@ -12,6 +12,23 @@ The documentation in detail of each service, it can be found here:
 * [Prime number service](PrimerNumberService/README.md)
 * [gRPC contract](GRpcContract/README.md)
 
+## Testing
+
+![My image](img/testPyramid.png)
+
+**To go fast you have to go well** this quote of Robert C. Martin express perfectly what TDD and BDD is about. You should think first in all corner cases of your program, and then implement
+one by one committing every scenario to have a quick feedback about your program.
+
+In my application I invested around 70% of the time implementing the test framework, the type of testing implemented are described below.
+
+* **Unit**: I used [scalatest](https://www.scalatest.org) together with some local mocks to Mock external resources of your class.
+* **Integration**:
+  Just to be clear, the IT test are just a proof that our Unit test are well designed and the Mock behaves as I expect. None IT test should ever fail. And if it does,
+  you have to reproduce it in Unit test.
+* **Performance**: Performance/Stress test are meant to be used to detect possible concurrency issue in your application,
+  and also to have a control of the latency of your endpoints.
+
+
 ## Stack
 
 ![My image](img/ZIO.png) ![My image](img/finagle.png) ![My image](img/grpc.png)
