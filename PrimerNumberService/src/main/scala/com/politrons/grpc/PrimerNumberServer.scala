@@ -13,7 +13,7 @@ object PrimerNumberServer {
   }
 
   def start(port: Int = 9995): ZIO[Has[PrimeNumberServiceImplBase], Throwable, Unit] = {
-    for {
+    (for {
       service <- ZManaged.service[PrimeNumberServiceImplBase].useNow
       server <- ZIO.effect {
         ServerBuilder.forPort(port)
@@ -21,7 +21,11 @@ object PrimerNumberServer {
           .build()
           .start()
       }
-    } yield server.awaitTermination()
+    } yield server.awaitTermination()).catchAll {
+      t =>
+        println(s"[PrimerNumberServer] Error initializing. Caused by ${t.getCause}")
+        ZIO.fail(t)
+    }
   }
 
 }
