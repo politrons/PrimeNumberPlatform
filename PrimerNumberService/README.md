@@ -6,7 +6,7 @@
   to be used from client and server
 
 * To control all possible side effects in our program I use Effect system [ZIO](https://zio.dev), a pure functional programing toolkit
-  which provide the features of have Pure functional programs with side effect control,
+  which provide the features to have Pure functional programs with side effect control,
   lazy evaluation, performance improvements since the program run in Fibers(Green threads) instead in OS Threads, and also DI mechanism with ZLayers.
   
 # How to Test
