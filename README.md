@@ -12,3 +12,6 @@ The documentation in detail of each service, it can be found here:
 * [Prime number service](PrimerNumberService/README.md)
 * [gRPC contract](GRpcContract/README.md)
 
+## Stack
+
+![My image](img/ZIO.png) ![My image](img/finagle.png) ![My image](img/grpc.png)

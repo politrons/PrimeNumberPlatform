@@ -5,7 +5,7 @@ import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
 import zio.{Has, ZIO, ZManaged}
 
-object PrimerNumberClient {
+case class PrimerNumberClient() {
 
   /**
    * Since I don't have enough time, I don't put properly the config properties in property files.

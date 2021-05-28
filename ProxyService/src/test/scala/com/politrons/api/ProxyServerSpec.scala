@@ -1,5 +1,6 @@
 package com.politrons.api
 
+import com.politrons.mocks.PrimerNumberServerMock
 import com.twitter.concurrent.AsyncStream
 import com.twitter.finagle.{Http, http}
 import com.twitter.io.{Buf, Reader}
@@ -10,20 +11,25 @@ import scala.concurrent.duration._
 
 class ProxyServerSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfterAll {
 
-  val port = 1981
+  override def beforeAll(): Unit = {
+    PrimerNumberServerMock.start()
+  }
 
-  val promise: Promise[String] = Promise()
+  override def afterAll(): Unit = {
+    PrimerNumberServerMock.stop()
+  }
 
   feature("ProxyServer to return a stream with the prime numbers ") {
     scenario("ProxyServer prime endpoint") {
       Given("a proxy server and a mock prime number server")
 
+      val port = 1981
+      val promise: Promise[String] = Promise()
       ProxyServer.start(port)
 
       val client = Http.client
         .withStreaming(enabled = true)
         .newService(s"/$$/inet/localhost/$port")
-      //TODO:Once we have the logic to communicate to the other service add a mock here
 
       When("I invoke the endpoint /prime")
       val primeNumberLimit = "17"

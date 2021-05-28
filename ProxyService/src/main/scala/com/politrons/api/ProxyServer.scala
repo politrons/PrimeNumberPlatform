@@ -1,9 +1,11 @@
 package com.politrons.api
 
+import com.politrons.grpc.PrimerNumberClient
 import com.twitter.finagle.http.{Request, Response, Status}
 import com.twitter.finagle.{Http, Service, http}
 import com.twitter.io.{Buf, Reader}
 import com.twitter.util.Future
+import zio.{Has, Runtime, ZIO, ZLayer}
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -20,6 +22,9 @@ object ProxyServer {
 
   private val writable: Reader.Writable = Reader.writable()
 
+  //TODO:Pass PrimerNumberClient as a dependency to the ProxyServer
+  private val primeNumberClient = PrimerNumberClient()
+
   def start(port: Int) {
     Http.server
       .withStreaming(enabled = true)
@@ -29,16 +34,14 @@ object ProxyServer {
   val service: Service[Request, Response] = (req: http.Request) => {
     req.path match {
       case "/prime/:number" =>
-        val primeNumberLimit = req.getParam("number")
-        val buf = Buf.Utf8(primeNumberLimit)
+        val primeNumber = req.getParam("number")
+        val buf = Buf.Utf8(primeNumber)
+        //TODO:Change Scala future for ZIO Fiber
         scala.concurrent.Future {
           //TODO:Add logic of validation
-          //TODO:Add logic of communication with prime number service.
-
-          while (true) {
-            writable.write(buf)
-            Thread.sleep(1000)
-          }
+          val primeNumberProgram: ZIO[Has[Reader.Writable], Throwable, Unit] =
+            primeNumberClient.findPrimeNumbers(primeNumber)
+          Runtime.global.unsafeRun(primeNumberProgram.provideLayer(ZLayer.succeed(writable)))
         }
         Future.value(Response(req.version, Status.Ok, writable))
     }
