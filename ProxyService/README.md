@@ -6,9 +6,9 @@
   to use **Reader** and **Writable** to open a continuously streams between client and server.
   
 * I use [gRPC](https://grpc.io) for RPC communication between ```ProxyServer``` and ```PrimeNumberServer```.
-  We have dependency with module ````GRpcContract```` which contains the contract and also the generated sources to be used from client and server.
+  I have dependency with module ````GRpcContract```` which contains the contract and also the generated sources to be used from ```PrimerNumberClient```.
   
-* To control all possible side effects in our program I use Effect system [ZIO](https://zio.dev) a pure functional programing toolkit
+* To control all possible side effects in our program I use Effect system [ZIO](https://zio.dev), a pure functional programing toolkit
 which provide the features of have Pure functional programs with lazy evaluation and DI mechanism with ZLayers.
 
 # How to Test
