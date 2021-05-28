@@ -32,7 +32,6 @@ object PrimerNumberServerMock {
               }
             }
           }
-
         }).asInstanceOf[ServerBuilder[_]]
         .build()
         .start()
