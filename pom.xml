@@ -11,7 +11,7 @@
     <modules>
         <module>ProxyService</module>
         <module>PrimerNumberService</module>
-        <module>ThriftContract</module>
+        <module>GRpcContract</module>
     </modules>
 
 </project>

@@ -1,0 +1,22 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package com.politrons.grpc;
+
+// Here we define the Request Class type of the communication.
+message PrimeNumberRequest {
+    string attr = 1;
+}
+
+//Here we define the Response Class type of the communication.
+message PrimeNumberResponse {
+    string value = 1;
+}
+
+/*Here we define the service which it will be set in the server.
+/ Also we define the method findPrimeNumbers which must be implement in the service to be invoked by client.
+/ We define the Class type for the request StreamObserver<PrimeNumberRequest>,
+/ and also the response type class StreamObserver<PrimeNumberResponse>
+*/
+service PrimeNumberService {
+    rpc findPrimeNumbers(stream PrimeNumberRequest) returns (stream PrimeNumberResponse);
+}

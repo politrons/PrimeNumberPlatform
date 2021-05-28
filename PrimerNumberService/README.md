@@ -1,11 +1,10 @@
 # PrimeNumberService
 
 
-# How to build
+# Summary
 
-* We use ```Apache Thirft``` for RPC communication. We define our contract in the [folder](src/main/scala/com/politrons/thrift/idl)
-* Since we use ```Finagle scrooge``` maven plugin, we have to execute the ```scrooge:compile```
-  task, it will generate all the code specify in the definition file ````prime_number_service.thrift````
-  Once the class ````PrimeNumberService```` has been generated, we can compile our RPC [server](src/main/scala/com/politrons/thrift/PrimeNumberServer.scala) and [service](src/main/scala/com/politrons/thrift/PrimeNumberServiceImpl.scala) implementation 
+* We use [gRPC]() for RPC communication. We have dependency with module ````GRpcContract```` which contains the contract and also the generated sources
+  to be used from client and server
+
 
   

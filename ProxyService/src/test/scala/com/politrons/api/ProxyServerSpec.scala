@@ -3,10 +3,10 @@ package com.politrons.api
 import com.twitter.concurrent.AsyncStream
 import com.twitter.finagle.{Http, http}
 import com.twitter.io.{Buf, Reader}
-import com.twitter.util.{Await, Future}
 import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
-import scala.concurrent.duration._
+
 import scala.concurrent.Promise
+import scala.concurrent.duration._
 
 class ProxyServerSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfterAll {
 

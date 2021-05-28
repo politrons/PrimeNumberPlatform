@@ -1,14 +1,18 @@
 # Proxy Server
 
-# How to build 
+# Summary  
 
-* We use ```Apache Thirft``` for RPC communication. We define our contract in the [folder](src/main/scala/com/politrons/thrift/idl)
-* Since we use ```Finagle scrooge``` maven plugin, we have to execute the ```scrooge:compile```
-  task, it will generate all the code specify in the definition file ````prime_number_service.thrift````
-  Once the class ````PrimeNumberService```` has been generated, we can compile our RPC client implementation ```PrimerNumberClient```
+* For the Rest API layer I use [Finagle](https://twitter.github.io/finagle/) which provide the possibility 
+  to use **Reader** and **Writable** to open a continuously streams between client and server.
+  
+* I use [gRPC](https://grpc.io) for RPC communication between ```ProxyServer``` and ```PrimeNumberServer```.
+  We have dependency with module ````GRpcContract```` which contains the contract and also the generated sources to be used from client and server.
+  
+* To control all possible side effects in our program I use Effect system [ZIO](https://zio.dev) a pure functional programing toolkit
+which provide the features of have Pure functional programs with lazy evaluation and DI mechanism with ZLayers.
 
 # How to Test
 
-* We use [scalatest](https://www.scalatest.org) framework to design the unit and IT test in our system.
+* I use [scalatest](https://www.scalatest.org) framework to design the unit and IT test in our system.
 the whole batery of test must be executed during the maven test phase, but in case you want to run the test
   with the IDE you can take a look to the test [here](src/test/scala)
