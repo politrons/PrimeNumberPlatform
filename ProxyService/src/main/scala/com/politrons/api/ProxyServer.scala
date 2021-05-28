@@ -28,8 +28,9 @@ object ProxyServer {
 
   val service: Service[Request, Response] = (req: http.Request) => {
     req.path match {
-      case "/prime" =>
-        val buf = Buf.Utf8("hello world")
+      case "/prime/:number" =>
+        val primeNumberLimit = req.getParam("number")
+        val buf = Buf.Utf8(primeNumberLimit)
         scala.concurrent.Future {
           //TODO:Add logic of validation
           //TODO:Add logic of communication with prime number service.

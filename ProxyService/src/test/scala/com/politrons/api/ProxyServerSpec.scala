@@ -26,7 +26,9 @@ class ProxyServerSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfter
       //TODO:Once we have the logic to communicate to the other service add a mock here
 
       When("I invoke the endpoint /prime")
-      client(http.Request(http.Method.Get, "/prime")).flatMap {
+      val primeNumberLimit = "17"
+
+      client(http.Request(s"/prime/:number", Tuple2("number", primeNumberLimit))).flatMap {
         response =>
           fromReader(response.reader) foreach {
             case Buf.Utf8(buf) =>
@@ -36,6 +38,7 @@ class ProxyServerSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfter
       Then("I receive the prime numbers in the stream")
       val prime = scala.concurrent.Await.result(promise.future, 30 seconds)
       assert(prime != null)
+      assert(prime == primeNumberLimit)
     }
   }
 
