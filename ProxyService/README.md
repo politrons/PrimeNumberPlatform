@@ -23,3 +23,11 @@ the whole batery of test must be executed during the maven test phase, but in ca
 mvn clean install
 ````
 
+
+## How to run it
+
+After compile the module, go to the target fold and run the fatjar generated invoking the main class
+
+````
+ java -cp ProxyService-1.0-SNAPSHOT-jar-with-dependencies.jar com.politrons.api.ProxyServer
+````

@@ -4,7 +4,7 @@ import com.politrons.grpc.{PrimeNumberClient, PrimerNumberClientImpl}
 import com.twitter.finagle.http.{Request, Response, Status}
 import com.twitter.finagle.{Http, ListeningServer, Service, http}
 import com.twitter.io.{Buf, Reader}
-import com.twitter.util.{Awaitable, Future}
+import com.twitter.util.{Await, Awaitable, Future}
 import zio.{Has, Runtime, Task, ZIO, ZLayer, ZManaged}
 
 import scala.concurrent.ExecutionContextExecutor
@@ -24,7 +24,7 @@ object ProxyServer {
 
   def main(args: Array[String]): Unit = {
     val serverProgram = start(9995)
-    val primeNumberClient:PrimeNumberClient = PrimerNumberClientImpl()
+    val primeNumberClient: PrimeNumberClient = PrimerNumberClientImpl()
     Runtime.global.unsafeRun(serverProgram.provideLayer(ZLayer.succeed(primeNumberClient)))
   }
 
@@ -32,7 +32,8 @@ object ProxyServer {
     (for {
       primeNumberClient <- ZManaged.service[PrimeNumberClient].useNow
       service <- createService(primeNumberClient)
-      _ <- createServer(port, service)
+      server <- createServer(port, service)
+      _ <- ZIO.effect(Await.ready(server))
     } yield ()).catchAll { t =>
       println(s"[ProxyServer] Error initializing. Caused by $t")
       ZIO.fail(t)

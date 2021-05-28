@@ -1,6 +1,6 @@
 package com.politrons.api
 
-import com.politrons.grpc.{PrimeNumberClient, PrimerNumberClientImpl}
+import com.politrons.grpc.PrimeNumberClient
 import com.politrons.mocks.{PrimeNumberClientMock, PrimerNumberServerMock}
 import com.twitter.concurrent.AsyncStream
 import com.twitter.finagle.{Http, http}
@@ -8,8 +8,8 @@ import com.twitter.io.{Buf, Reader}
 import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
 import zio.{Runtime, ZLayer}
 
-import scala.concurrent.Promise
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContextExecutor, Future, Promise}
 
 class ProxyServerSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfterAll {
 
@@ -21,6 +21,8 @@ class ProxyServerSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfter
     PrimerNumberServerMock.stop()
   }
 
+  implicit val ec: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
+
   feature("ProxyServer to return a stream with the prime numbers ") {
     scenario("ProxyServer prime endpoint") {
       Given("a proxy server and a mock prime number server")
@@ -28,8 +30,10 @@ class ProxyServerSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfter
       val port = 1981
       val promise: Promise[String] = Promise()
       val proxyServerProgram = ProxyServer.start(port)
-      val primeNumberClient:PrimeNumberClient = PrimeNumberClientMock()
-      Runtime.global.unsafeRun(proxyServerProgram.provideLayer(ZLayer.succeed(primeNumberClient)))
+      val primeNumberClient: PrimeNumberClient = PrimeNumberClientMock()
+      Future {
+        Runtime.global.unsafeRun(proxyServerProgram.provideLayer(ZLayer.succeed(primeNumberClient)))
+      }
 
       val client = Http.client
         .withStreaming(enabled = true)

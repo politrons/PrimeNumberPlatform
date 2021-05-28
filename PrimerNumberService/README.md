@@ -1,6 +1,6 @@
 # PrimeNumberService
 
-# Summary
+## Summary
 
 * We use [gRPC]() for RPC communication. We have dependency with module ````GRpcContract```` which contains the contract and also the generated sources
   to be used from client and server
@@ -9,7 +9,7 @@
   which provide the features to have Pure functional programs with side effect control,
   lazy evaluation, performance improvements since the program run in Fibers(Green threads) instead in OS Threads, and also DI mechanism with ZLayers.
   
-# How to Test
+## How to Test
 
 * I use [scalatest](https://www.scalatest.org) framework to design the unit and IT test in our system.
   the whole batery of test must be executed during the maven test phase, but in case you want to run the test
@@ -19,3 +19,12 @@
 ````
 mvn clean install
 ````  
+
+## How to run it
+
+After compile the module, go to the target fold and run the fatjar generated invoking the main class
+
+````
+java -cp PrimerNumberService-1.0-SNAPSHOT-jar-with-dependencies.jar com.politrons.grpc.PrimerNumberServer
+
+````
