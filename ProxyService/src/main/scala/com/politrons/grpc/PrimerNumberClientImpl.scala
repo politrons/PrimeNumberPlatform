@@ -5,7 +5,7 @@ import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
 import zio.{Has, ZIO, ZManaged}
 
-case class PrimerNumberClient() {
+case class PrimerNumberClientImpl() extends PrimeNumberClient {
 
   /**
    * Since I don't have enough time, I don't put properly the config properties in property files.
@@ -31,7 +31,7 @@ case class PrimerNumberClient() {
    * * Create the StreamObserver passing the [Reader.Writable] to be used internally
    * * run the onNext function of the stream passing the request created previously.
    */
-  def findPrimeNumbers(number: String): ZIO[Has[Reader.Writable], Throwable, Unit] = {
+  override def findPrimeNumbers(number: String): ZIO[Has[Reader.Writable], Throwable, Unit] = {
     (for {
       writable <- ZManaged.service[Reader.Writable].useNow
       request <- ZIO.effect(PrimeNumberRequest.newBuilder.setAttr(number).build)

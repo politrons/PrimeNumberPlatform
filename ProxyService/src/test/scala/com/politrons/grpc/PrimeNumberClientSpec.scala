@@ -26,7 +26,7 @@ class PrimeNumberClientSpec extends FeatureSpec with GivenWhenThen with BeforeAn
       Given("A Prime number program and Reader.Writable")
       val primeNumber = "17"
       val findPrimeNumbersProgram: ZIO[Has[Reader.Writable], Throwable, Unit] =
-        PrimerNumberClient().findPrimeNumbers(primeNumber)
+        PrimerNumberClientImpl().findPrimeNumbers(primeNumber)
       val writable: Reader.Writable = Reader.writable()
       When("I run the program passing the [Writable] dependency")
       Runtime.global.unsafeRun(findPrimeNumbersProgram.provideLayer(ZLayer.succeed(writable)))

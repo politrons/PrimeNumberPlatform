@@ -1,6 +1,6 @@
 package com.politrons.api
 
-import com.politrons.grpc.PrimerNumberClient
+import com.politrons.grpc.{PrimeNumberClient, PrimerNumberClientImpl}
 import com.twitter.finagle.http.{Request, Response, Status}
 import com.twitter.finagle.{Http, ListeningServer, Service, http}
 import com.twitter.io.{Buf, Reader}
@@ -24,12 +24,13 @@ object ProxyServer {
 
   def main(args: Array[String]): Unit = {
     val serverProgram = start(9995)
-    Runtime.global.unsafeRun(serverProgram.provideLayer(ZLayer.succeed(PrimerNumberClient())))
+    val primeNumberClient:PrimeNumberClient = PrimerNumberClientImpl()
+    Runtime.global.unsafeRun(serverProgram.provideLayer(ZLayer.succeed(primeNumberClient)))
   }
 
-  def start(port: Int): ZIO[Has[PrimerNumberClient], Throwable, Unit] = {
+  def start(port: Int): ZIO[Has[PrimeNumberClient], Throwable, Unit] = {
     (for {
-      primeNumberClient <- ZManaged.service[PrimerNumberClient].useNow
+      primeNumberClient <- ZManaged.service[PrimeNumberClient].useNow
       service <- createService(primeNumberClient)
       _ <- createServer(port, service)
     } yield ()).catchAll { t =>
@@ -46,7 +47,7 @@ object ProxyServer {
     }
   }
 
-  def createService(client: PrimerNumberClient): Task[Service[Request, Response]] =
+  def createService(client: PrimeNumberClient): Task[Service[Request, Response]] =
     ZIO.effect {
       (req: http.Request) => {
         req.path match {

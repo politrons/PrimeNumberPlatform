@@ -1,7 +1,7 @@
 package com.politrons.api
 
-import com.politrons.grpc.PrimerNumberClient
-import com.politrons.mocks.PrimerNumberServerMock
+import com.politrons.grpc.{PrimeNumberClient, PrimerNumberClientImpl}
+import com.politrons.mocks.{PrimeNumberClientMock, PrimerNumberServerMock}
 import com.twitter.concurrent.AsyncStream
 import com.twitter.finagle.{Http, http}
 import com.twitter.io.{Buf, Reader}
@@ -28,8 +28,8 @@ class ProxyServerSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfter
       val port = 1981
       val promise: Promise[String] = Promise()
       val proxyServerProgram = ProxyServer.start(port)
-
-      Runtime.global.unsafeRun(proxyServerProgram.provideLayer(ZLayer.succeed(PrimerNumberClient())))
+      val primeNumberClient:PrimeNumberClient = PrimeNumberClientMock()
+      Runtime.global.unsafeRun(proxyServerProgram.provideLayer(ZLayer.succeed(primeNumberClient)))
 
       val client = Http.client
         .withStreaming(enabled = true)
