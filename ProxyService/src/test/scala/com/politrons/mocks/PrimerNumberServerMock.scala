@@ -38,7 +38,7 @@ object PrimerNumberServerMock {
   }
 
   def stop(): Unit ={
-    server.shutdownNow()
+    server.shutdown()
   }
 
 }

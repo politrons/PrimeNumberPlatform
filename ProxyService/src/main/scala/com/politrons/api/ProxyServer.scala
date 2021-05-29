@@ -5,6 +5,7 @@ import com.twitter.finagle.http.{Request, Response, Status}
 import com.twitter.finagle.{Http, ListeningServer, Service, http}
 import com.twitter.io.{Buf, Reader}
 import com.twitter.util.{Await, Awaitable, Future}
+import org.apache.logging.log4j.{LogManager, Logger}
 import zio.{Has, Runtime, Task, ZIO, ZLayer, ZManaged}
 
 import scala.concurrent.ExecutionContextExecutor
@@ -18,12 +19,15 @@ import scala.concurrent.ExecutionContextExecutor
  */
 object ProxyServer {
 
+  private val logger: Logger = LogManager.getLogger("ProxyServer")
+
   implicit val ec: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
 
   private val writable: Reader.Writable = Reader.writable()
 
   def main(args: Array[String]): Unit = {
-    val serverProgram = start(9995)
+    val port = 9995
+    val serverProgram = start(port)
     val primeNumberClient: PrimeNumberClient = PrimerNumberClientImpl()
     Runtime.global.unsafeRun(serverProgram.provideLayer(ZLayer.succeed(primeNumberClient)))
   }
@@ -34,8 +38,8 @@ object ProxyServer {
       service <- createService(primeNumberClient)
       server <- createServer(port, service)
       _ <- ZIO.effect(Await.ready(server))
-    } yield ()).catchAll { t =>
-      println(s"[ProxyServer] Error initializing. Caused by $t")
+    } yield logger.info(s"[ProxyServer] server up and running in port $port")).catchAll { t =>
+      logger.error(s"[ProxyServer] Error initializing. Caused by $t")
       ZIO.fail(t)
     }
   }

@@ -3,9 +3,12 @@ package com.politrons.grpc
 import com.twitter.io.{Buf, Reader}
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
+import org.apache.logging.log4j.{LogManager, Logger}
 import zio.{Has, ZIO, ZManaged}
 
 case class PrimerNumberClientImpl() extends PrimeNumberClient {
+
+  private val logger: Logger = LogManager.getLogger(classOf[PrimerNumberClientImpl])
 
   /**
    * Since I don't have enough time, I don't put properly the config properties in property files.
@@ -38,7 +41,7 @@ case class PrimerNumberClientImpl() extends PrimeNumberClient {
       stream <- ZIO.effect(createStreamObserver(writable))
       _ <- ZIO.effect(stream.onNext(request))
     } yield ()).catchAll(t => {
-      println(s"[PrimerNumberClient] Error: Caused by ${t.getCause} ")
+      logger.error(s"[PrimerNumberClient] Error: Caused by ${t.getCause} ")
       ZIO.fail(t)
     })
   }
@@ -53,7 +56,7 @@ case class PrimerNumberClientImpl() extends PrimeNumberClient {
       override def onNext(response: PrimeNumberResponse): Unit = {
         val buf = Buf.Utf8(response.getValue)
         writable.write(buf)
-        System.out.println(response)
+        logger.debug(s"[PrimerNumberClientImpl] response:$response")
       }
 
       override def onError(t: Throwable): Unit = {
@@ -61,7 +64,7 @@ case class PrimerNumberClientImpl() extends PrimeNumberClient {
       }
 
       override def onCompleted(): Unit = {
-        System.out.println("Stream finish")
+        logger.info("Stream finish")
       }
     })
   }

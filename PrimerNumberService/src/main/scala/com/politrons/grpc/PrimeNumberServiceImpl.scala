@@ -1,16 +1,20 @@
 package com.politrons.grpc
 
 import io.grpc.stub.StreamObserver
+import org.apache.logging.log4j.{LogManager, Logger}
 
 class PrimeNumberServiceImpl extends PrimeNumberServiceGrpc.PrimeNumberServiceImplBase {
+
+  private val logger: Logger = LogManager.getLogger(classOf[PrimeNumberServiceImpl])
 
   override def findPrimeNumbers(responseObserver: StreamObserver[PrimeNumberResponse]): StreamObserver[PrimeNumberRequest] = {
     new StreamObserver[PrimeNumberRequest]() {
       override def onNext(primeNumber: PrimeNumberRequest): Unit = {
-
+        logger.debug("[PrimeNumberServiceImpl] Prime number limit received to generate prime numbers")
         sieveOfEratosthenes(Stream.from(2))
           .takeWhile(prime => prime <= primeNumber.getAttr.toInt)
           .foreach { prime =>
+            logger.debug(s"[PrimeNumberServiceImpl] Prime number:$prime")
             val response: PrimeNumberResponse =
               PrimeNumberResponse.newBuilder.setValue(prime.toString).build
             responseObserver.onNext(response)
