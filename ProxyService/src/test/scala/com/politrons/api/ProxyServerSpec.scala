@@ -44,6 +44,7 @@ class ProxyServerSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfter
 
       client(http.Request(s"/prime/:number", Tuple2("number", primeNumberLimit))).flatMap {
         response =>
+          if(response.statusCode != 200) promise.failure(new Exception(s"Server error response. Code ${response.statusCode}"))
           fromReader(response.reader) foreach {
             case Buf.Utf8(buf) =>
               promise.success(buf)

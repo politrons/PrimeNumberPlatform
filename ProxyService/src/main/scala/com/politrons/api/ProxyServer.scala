@@ -6,9 +6,10 @@ import com.twitter.finagle.{Http, ListeningServer, Service, http}
 import com.twitter.io.{Buf, Reader}
 import com.twitter.util.{Await, Awaitable, Future}
 import org.apache.logging.log4j.{LogManager, Logger}
-import zio.{Has, Runtime, Task, ZIO, ZLayer, ZManaged}
+import zio.{Fiber, Has, Runtime, Task, URIO, ZIO, ZLayer, ZManaged}
 
 import scala.concurrent.ExecutionContextExecutor
+import scala.util.Try
 
 /**
  * Http server based in [Finagle](https://twitter.github.io/finagle/) toolkit,
@@ -25,6 +26,9 @@ object ProxyServer {
 
   private val writable: Reader.Writable = Reader.writable()
 
+  /**
+   * Entry point of the program to be started.
+   */
   def main(args: Array[String]): Unit = {
     val port = 9995
     val serverProgram = start(port)
@@ -32,6 +36,11 @@ object ProxyServer {
     Runtime.global.unsafeRun(serverProgram.provideLayer(ZLayer.succeed(primeNumberClient)))
   }
 
+  /**
+   * ZIO program to start up the [Finagle] server in a specific port.
+   * We pass a Dependency to the program the gRPC client [PrimeNumberClient],
+   * to communicate with other service.
+   */
   def start(port: Int): ZIO[Has[PrimeNumberClient], Throwable, Unit] = {
     (for {
       primeNumberClient <- ZManaged.service[PrimeNumberClient].useNow
@@ -44,6 +53,11 @@ object ProxyServer {
     }
   }
 
+  /**
+   * We create a [ListeningServer] where we specify the operator [withStreaming(enabled = true)]
+   * Allowing a communication between client-server with an infinite body, using a stream with
+   * [Reader-Writable]
+   */
   private def createServer(port: Int, service: Service[Request, Response]): Task[ListeningServer] = {
     ZIO.effect {
       Http.server
@@ -52,21 +66,30 @@ object ProxyServer {
     }
   }
 
+  /**
+   * Here we define the service with the endpoint [/prime/:number] which expect a uri param as prime number limit.
+   * Once we receive the request we create a ZIO program that run asynchronously in a Fiber, so there's
+   * non blocking request logic.
+   * This ZIO program receive in the evaluation time the dependencies they needs. The [Request] of the communication,
+   * and the [Writable]
+   * We return a [writable] so then we can continuous sending data.
+   */
   def createService(client: PrimeNumberClient): Task[Service[Request, Response]] =
     ZIO.effect {
       (req: http.Request) => {
         req.path match {
           case "/prime/:number" =>
-            val primeNumber = req.getParam("number")
-            val buf = Buf.Utf8(primeNumber)
-            //TODO:Change Scala future for ZIO Fiber
-            scala.concurrent.Future {
-              //TODO:Add logic of validation
-              //TODO:Pass PrimerNumberClient as a dependency to the ProxyServer
-              val primeNumberProgram: ZIO[Has[Reader.Writable], Throwable, Unit] =
-              client.findPrimeNumbers(primeNumber)
-              Runtime.global.unsafeRun(primeNumberProgram.provideLayer(ZLayer.succeed(writable)))
-            }
+            val primeNumberRequestProgram: URIO[Has[Request] with Has[Reader.Writable], Fiber[Throwable, Unit]] =
+              (for {
+                request <- ZManaged.service[Request].useNow
+                primeNumber <- ZIO.effect(request.getParam("number"))
+                _ <- ZIO.when(Try(primeNumber.toInt).isSuccess)(client.findPrimeNumbers(primeNumber))
+              } yield ()).catchAll(t => {
+                logger.error(s"[ProxyServer] Error in prime number request. Caused by $t")
+                ZIO.fail(t)
+              }).fork
+            val dependencies = ZLayer.succeed(req) ++ ZLayer.succeed(writable)
+            Runtime.global.unsafeRun(primeNumberRequestProgram.provideLayer(dependencies))
             Future.value(Response(req.version, Status.Ok, writable))
         }
       }
