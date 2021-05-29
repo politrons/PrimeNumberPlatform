@@ -7,6 +7,12 @@ class PrimeNumberServiceImpl extends PrimeNumberServiceGrpc.PrimeNumberServiceIm
 
   private val logger: Logger = LogManager.getLogger(classOf[PrimeNumberServiceImpl])
 
+  /**
+   * Service implementation of gRPC contract.
+   * It receive as input param the StreamObserver[PrimeNumberResponse] of the client has created,
+   * in order to communicate obtain communication back to the client.And the StreamObserver[PrimeNumberRequest]
+   * as return type to be used by the client to invoke [onNext] for request.
+   */
   override def findPrimeNumbers(responseObserver: StreamObserver[PrimeNumberResponse]): StreamObserver[PrimeNumberRequest] = {
     new StreamObserver[PrimeNumberRequest]() {
       override def onNext(primeNumber: PrimeNumberRequest): Unit = {
