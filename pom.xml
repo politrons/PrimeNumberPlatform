@@ -9,9 +9,10 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>ProxyService</module>
-        <module>PrimerNumberService</module>
-        <module>GRpcContract</module>
+        <module>proxy-service</module>
+        <module>prime-number-service</module>
+        <module>gRpc-contract</module>
+        <module>test-framework</module>
     </modules>
 
 </project>
