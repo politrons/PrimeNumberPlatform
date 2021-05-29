@@ -9,19 +9,22 @@ import scala.language.postfixOps
 
 class PrimeNumberServiceImplSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfterAll {
 
-  val promise: Promise[String] = Promise()
+  val primes: Array[String] = Array("2", "3", "5", "7", "11", "13", "17")
+  val promise: Promise[Array[String]] = Promise()
   feature("PrimeNumberServiceImpl to generate prime numbers ") {
     scenario("We create the instance of PrimeNumberServiceImpl and we invoke the findPrimeNumbers") {
       Given("An instance of the service")
       val service = new PrimeNumberServiceImpl()
       When("I invoke to get findPrimeNumbers ")
-      var primeNumberCount = 0
+      var index = 0
+      val responsePrimes: Array[String] = new Array(7)
       val observer: StreamObserver[PrimeNumberRequest] = service.findPrimeNumbers(new StreamObserver[PrimeNumberResponse]() {
         override def onNext(response: PrimeNumberResponse): Unit = {
           System.out.println(s"Prime number response:${response.getValue}")
-          primeNumberCount += 1
-          if(primeNumberCount >=7){
-            promise.success(response.getValue)
+          responsePrimes(index) = response.getValue
+          index += 1
+          if (index >= 7) {
+            promise.success(responsePrimes)
           }
         }
 
@@ -37,7 +40,7 @@ class PrimeNumberServiceImplSpec extends FeatureSpec with GivenWhenThen with Bef
       val request: PrimeNumberRequest = PrimeNumberRequest.newBuilder.setAttr(primeNumber).build;
       observer.onNext(request)
       Then("it return the expected number of prime numbers")
-      assert(Await.result(promise.future, 30 seconds) == primeNumber)
+      assert(Await.result(promise.future, 30 seconds).deep == primes.deep)
     }
   }
 
