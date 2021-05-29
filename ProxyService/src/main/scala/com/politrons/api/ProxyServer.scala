@@ -79,18 +79,18 @@ object ProxyServer {
       (req: http.Request) => {
         req.path match {
           case "/prime/:number" =>
-            val primeNumberRequestProgram: URIO[Has[Request] with Has[Reader.Writable], Fiber[Throwable, Unit]] =
+            val primeNumberRequestProgram: ZIO[Has[Request] with Has[Reader.Writable], Throwable, Future[Response]] =
               (for {
                 request <- ZManaged.service[Request].useNow
                 primeNumber <- ZIO.effect(request.getParam("number"))
-                _ <- ZIO.when(Try(primeNumber.toInt).isSuccess)(client.findPrimeNumbers(primeNumber))
-              } yield ()).catchAll(t => {
+                _ <- ZIO.effect(primeNumber.toInt)
+                _ <- client.findPrimeNumbers(primeNumber).fork
+              } yield Future.value(Response(req.version, Status.Ok, writable))).catchAll(t => {
                 logger.error(s"[ProxyServer] Error in prime number request. Caused by $t")
-                ZIO.fail(t)
-              }).fork
+                ZIO.succeed(Future.value(Response(req.version, Status.InternalServerError)))
+              })
             val dependencies = ZLayer.succeed(req) ++ ZLayer.succeed(writable)
             Runtime.global.unsafeRun(primeNumberRequestProgram.provideLayer(dependencies))
-            Future.value(Response(req.version, Status.Ok, writable))
         }
       }
     }
