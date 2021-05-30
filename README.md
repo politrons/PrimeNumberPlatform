@@ -24,6 +24,8 @@ one by one committing every scenario to have a quick feedback about your program
 
 In my application I invested around 70% of the time implementing the test framework, the type of testing implemented are described below.
 
+![My image](img/pipeline.png)
+
 * **Unit**: I used [scalatest](https://www.scalatest.org) together with some local mocks to Mock external resources of your class.
 * **Integration**:
   Just to be clear, the Integration test are just a proof that our Unit test are well designed and the Mock behaves as I expect. None IT test should ever fail. And if it does,
