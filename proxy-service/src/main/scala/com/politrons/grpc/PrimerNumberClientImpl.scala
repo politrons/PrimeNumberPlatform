@@ -3,6 +3,7 @@ package com.politrons.grpc
 import com.twitter.io.{Buf, Reader}
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, ZIO, ZManaged}
 
@@ -41,7 +42,7 @@ case class PrimerNumberClientImpl() extends PrimeNumberClient {
       stream <- ZIO.effect(createStreamObserver(writable))
       _ <- ZIO.effect(stream.onNext(request))
     } yield ()).catchAll(t => {
-      logger.error(s"[PrimerNumberClient] Error: Caused by ${t.getCause} ")
+      logger.error(s"[PrimerNumberClient] Error: Caused by ${ExceptionUtils.getStackTrace(t)} ")
       ZIO.fail(t)
     })
   }

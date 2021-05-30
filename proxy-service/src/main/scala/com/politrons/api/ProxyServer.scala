@@ -3,13 +3,13 @@ package com.politrons.api
 import com.politrons.grpc.{PrimeNumberClient, PrimerNumberClientImpl}
 import com.twitter.finagle.http.{Request, Response, Status}
 import com.twitter.finagle.{Http, ListeningServer, Service, http}
-import com.twitter.io.{Buf, Reader}
-import com.twitter.util.{Await, Awaitable, Future}
+import com.twitter.io.Reader
+import com.twitter.util.{Await, Future}
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.slf4j.{Logger, LoggerFactory}
-import zio.{Fiber, Has, Runtime, Task, URIO, ZIO, ZLayer, ZManaged}
+import zio.{Has, Runtime, Task, ZIO, ZLayer, ZManaged}
 
 import scala.concurrent.ExecutionContextExecutor
-import scala.util.Try
 
 /**
  * Http server based in [Finagle](https://twitter.github.io/finagle/) toolkit,
@@ -48,7 +48,7 @@ object ProxyServer {
       server <- createServer(port, service)
       _ <- ZIO.effect(Await.ready(server))
     } yield logger.info(s"[ProxyServer] server up and running in port $port")).catchAll { t =>
-      logger.error(s"[ProxyServer] Error initializing. Caused by $t")
+      logger.error(s"[ProxyServer] Error initializing. Caused by ${ExceptionUtils.getStackTrace(t)}")
       ZIO.fail(t)
     }
   }
@@ -86,7 +86,7 @@ object ProxyServer {
                 _ <- ZIO.effect(primeNumber.toInt)
                 _ <- client.findPrimeNumbers(primeNumber).forkDaemon
               } yield Future.value(Response(req.version, Status.Ok, writable))).catchAll(t => {
-                logger.error(s"[ProxyServer] Error in prime number request. Caused by $t")
+                logger.error(s"[ProxyServer] Error in prime number request. Caused by ${ExceptionUtils.getStackTrace(t)}")
                 ZIO.succeed(Future.value(Response(req.version, Status.InternalServerError)))
               })
             val dependencies = ZLayer.succeed(req) ++ ZLayer.succeed(writable)

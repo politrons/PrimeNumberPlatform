@@ -1,8 +1,10 @@
 package com.politrons.grpc
 
 import io.grpc.stub.StreamObserver
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import zio.{Runtime, ZIO}
 
 
 class PrimeNumberServiceImpl extends PrimeNumberServiceGrpc.PrimeNumberServiceImplBase {
@@ -19,14 +21,22 @@ class PrimeNumberServiceImpl extends PrimeNumberServiceGrpc.PrimeNumberServiceIm
     new StreamObserver[PrimeNumberRequest]() {
       override def onNext(primeNumber: PrimeNumberRequest): Unit = {
         logger.debug("[PrimeNumberServiceImpl] Prime number limit received to generate prime numbers")
-        sieveOfEratosthenes(Stream.from(2))
-          .takeWhile(prime => prime <= primeNumber.getAttr.toInt)
-          .foreach { prime =>
-            logger.debug(s"[PrimeNumberServiceImpl] Prime number:$prime")
-            val response: PrimeNumberResponse =
-              PrimeNumberResponse.newBuilder.setValue(prime.toString).build
-            responseObserver.onNext(response)
-          }
+        Runtime.global.unsafeRun {
+          ZIO.effect {
+            sieveOfEratosthenes(Stream.from(2))
+              .takeWhile(prime => prime <= primeNumber.getAttr.toInt)
+              .foreach { prime =>
+                logger.debug(s"[PrimeNumberServiceImpl] Prime number:$prime")
+                val response: PrimeNumberResponse =
+                  PrimeNumberResponse.newBuilder.setValue(prime.toString).build
+                responseObserver.onNext(response)
+              }
+          }.catchAll(t => {
+            logger.error(s"[PrimeNumberServiceImpl] Error generating prime numbers. Caused by ${ExceptionUtils.getStackTrace(t)}")
+            responseObserver.onError(t)
+            ZIO.succeed()
+          })
+        }
       }
 
       override def onError(t: Throwable): Unit = {

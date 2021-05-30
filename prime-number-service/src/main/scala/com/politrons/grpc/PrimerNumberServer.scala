@@ -2,6 +2,7 @@ package com.politrons.grpc
 
 import com.politrons.grpc.PrimeNumberServiceGrpc.PrimeNumberServiceImplBase
 import io.grpc.ServerBuilder
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, Runtime, ZIO, ZLayer, ZManaged}
 
@@ -29,7 +30,7 @@ object PrimerNumberServer extends App {
       }
     } yield server.awaitTermination()).catchAll {
       t =>
-        logger.error(s"[PrimerNumberServer] Error initializing. Caused by ${t.getCause}")
+        logger.error(s"[PrimerNumberServer] Error initializing. Caused by ${ExceptionUtils.getStackTrace(t)}")
         ZIO.fail(t)
     }
   }
