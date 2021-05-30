@@ -1,6 +1,6 @@
 # Proxy Server
 
-# Summary  
+## Summary  
 
 * For the Rest API layer I use [Finagle](https://twitter.github.io/finagle/) which provide the possibility 
   to use **Reader** and **Writable** to open a continuously streams between client and server.
@@ -12,7 +12,7 @@
 which provide the features to have Pure functional programs with side effect control,
   lazy evaluation, performance improvements since the program run in Fibers(Green threads) instead in OS Threads, and also DI mechanism with ZLayers.
 
-# How to Test
+## How to Test
 
 * I use [scalatest](https://www.scalatest.org) framework to design the unit and IT test in our system.
 the whole battery of test must be executed during the maven test phase, but in case you want to run the test

@@ -70,28 +70,34 @@ object ProxyServer {
    * Here we define the service with the endpoint [/prime/:number] which expect a uri param as prime number limit.
    * Once we receive the request we create a ZIO program that run asynchronously in a Fiber, so there's
    * non blocking request logic.
-   * This ZIO program receive in the evaluation time the dependencies they needs. The [Request] of the communication,
-   * and the [Writable]
-   * We return a [writable] so then we can continuous sending data.
    */
   def createService(client: PrimeNumberClient): Task[Service[Request, Response]] =
     ZIO.effect {
       (req: http.Request) => {
         req.path match {
           case "/prime/:number" =>
-            val primeNumberRequestProgram: ZIO[Has[Request] with Has[Reader.Writable], Throwable, Future[Response]] =
-              (for {
-                request <- ZManaged.service[Request].useNow
-                primeNumber <- ZIO.effect(request.getParam("number"))
-                _ <- ZIO.effect(primeNumber.toInt)
-                _ <- client.findPrimeNumbers(primeNumber).forkDaemon
-              } yield Future.value(Response(req.version, Status.Ok, writable))).catchAll(t => {
-                logger.error(s"[ProxyServer] Error in prime number request. Caused by ${ExceptionUtils.getStackTrace(t)}")
-                ZIO.succeed(Future.value(Response(req.version, Status.InternalServerError)))
-              })
             val dependencies = ZLayer.succeed(req) ++ ZLayer.succeed(writable)
+            val primeNumberRequestProgram = createPrimeNumberRequestProgram(client, req)
             Runtime.global.unsafeRun(primeNumberRequestProgram.provideLayer(dependencies))
         }
       }
     }
+
+  /**
+   * This ZIO program receive in the evaluation time the dependencies they needs. The [Request] of the communication,
+   * and the [Writable]
+   * We return a [writable] so then we can continuous sending data.
+   */
+  private def createPrimeNumberRequestProgram(client: PrimeNumberClient,
+                                              req: Request): ZIO[Has[Reader.Writable] with Has[Request], Nothing, Future[Response]] = {
+    (for {
+      request <- ZManaged.service[Request].useNow
+      primeNumber <- ZIO.effect(request.getParam("number"))
+      _ <- ZIO.effect(primeNumber.toInt)
+      _ <- client.findPrimeNumbers(primeNumber).forkDaemon
+    } yield Future.value(Response(req.version, Status.Ok, writable))).catchAll(t => {
+      logger.error(s"[ProxyServer] Error in prime number request. Caused by ${ExceptionUtils.getStackTrace(t)}")
+      ZIO.succeed(Future.value(Response(req.version, Status.InternalServerError)))
+    })
+  }
 }

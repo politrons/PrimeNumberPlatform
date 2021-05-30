@@ -55,18 +55,19 @@ case class PrimerNumberClientImpl() extends PrimeNumberClient {
   private def createStreamObserver(writable: Reader.Writable): StreamObserver[PrimeNumberRequest] = {
     stub.findPrimeNumbers(new StreamObserver[PrimeNumberResponse]() {
       override def onNext(response: PrimeNumberResponse): Unit = {
-        val buf = Buf.Utf8(response.getValue)
-        writable.write(buf)
         logger.debug(s"[PrimerNumberClientImpl] response:$response")
+        writable.write(Buf.Utf8(response.getValue))
+        //TODO:I´ve been forced to delay each response in the stream, otherwise the client cannot consume continuously
         Thread.sleep(500)
       }
 
       override def onError(t: Throwable): Unit = {
+        logger.error(s"[PrimerNumberClientImpl] Error in StreamObserver. Caused by ${ExceptionUtils.getStackTrace(t)}")
         throw t
       }
 
       override def onCompleted(): Unit = {
-        logger.info("Stream finish")
+        logger.info("[PrimerNumberClientImpl] StreamObserver completed")
       }
     })
   }
