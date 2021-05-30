@@ -5,7 +5,7 @@ import com.twitter.finagle.http.{Request, Response, Status}
 import com.twitter.finagle.{Http, ListeningServer, Service, http}
 import com.twitter.io.{Buf, Reader}
 import com.twitter.util.{Await, Awaitable, Future}
-import org.apache.logging.log4j.{LogManager, Logger}
+import org.slf4j.{Logger, LoggerFactory}
 import zio.{Fiber, Has, Runtime, Task, URIO, ZIO, ZLayer, ZManaged}
 
 import scala.concurrent.ExecutionContextExecutor
@@ -20,7 +20,7 @@ import scala.util.Try
  */
 object ProxyServer {
 
-  private val logger: Logger = LogManager.getLogger("ProxyServer")
+  private val logger: Logger = LoggerFactory.getLogger("ProxyServer")
 
   implicit val ec: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
 

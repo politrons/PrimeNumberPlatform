@@ -2,12 +2,12 @@ package com.politrons.grpc
 
 import com.politrons.grpc.PrimeNumberServiceGrpc.PrimeNumberServiceImplBase
 import io.grpc.ServerBuilder
-import org.apache.logging.log4j.{LogManager, Logger}
+import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, Runtime, ZIO, ZLayer, ZManaged}
 
 object PrimerNumberServer extends App {
 
-  private val logger: Logger = LogManager.getLogger("PrimerNumberServer")
+  private val logger: Logger = LoggerFactory.getLogger("PrimerNumberServer")
 
   private val primeNumberServerProgram = createPrimeNumberServer()
   private val service: PrimeNumberServiceImplBase = new PrimeNumberServiceImpl()

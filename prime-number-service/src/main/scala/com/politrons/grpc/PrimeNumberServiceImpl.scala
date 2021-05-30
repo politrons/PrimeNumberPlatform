@@ -1,11 +1,13 @@
 package com.politrons.grpc
 
 import io.grpc.stub.StreamObserver
-import org.apache.logging.log4j.{LogManager, Logger}
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 
 class PrimeNumberServiceImpl extends PrimeNumberServiceGrpc.PrimeNumberServiceImplBase {
 
-  private val logger: Logger = LogManager.getLogger(classOf[PrimeNumberServiceImpl])
+  private val logger: Logger = LoggerFactory.getLogger(classOf[PrimeNumberServiceImpl])
 
   /**
    * Service implementation of gRPC contract.

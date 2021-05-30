@@ -1,36 +1,16 @@
 package com.politrons.it
 
-import com.politrons.api.ProxyServer
-import com.politrons.grpc.PrimeNumberServiceGrpc.PrimeNumberServiceImplBase
-import com.politrons.grpc.{PrimeNumberClient, PrimeNumberServiceImpl, PrimerNumberClientImpl, PrimerNumberServer}
 import com.twitter.concurrent.AsyncStream
 import com.twitter.finagle.{Http, http}
 import com.twitter.io.{Buf, Reader}
 import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
-import zio.{Runtime, ZLayer}
 
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContextExecutor, Future, Promise}
+import scala.concurrent.{ExecutionContextExecutor, Promise}
 
 class PrimeNumberPlatformSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfterAll {
 
   val proxyServerPort = 9994
-
-  override def beforeAll(): Unit = {
-    val proxyServerProgram = ProxyServer.start(proxyServerPort)
-    val primeNumberClient: PrimeNumberClient = PrimerNumberClientImpl()
-
-    val serverProgram = PrimerNumberServer.createPrimeNumberServer()
-    val service: PrimeNumberServiceImplBase = new PrimeNumberServiceImpl()
-    Future {
-      Runtime.global.unsafeRun(serverProgram.provideLayer(ZLayer.succeed(service)))
-    }
-    Future {
-      Runtime.global.unsafeRun(proxyServerProgram.provideLayer(ZLayer.succeed(primeNumberClient)))
-    }
-    //TODO:Yeah pretty bad I know, but those server are running async so it's hard to know when they're ready
-    Thread.sleep(5000)
-  }
 
   implicit val ec: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
 

@@ -3,12 +3,12 @@ package com.politrons.grpc
 import com.twitter.io.{Buf, Reader}
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
-import org.apache.logging.log4j.{LogManager, Logger}
+import org.slf4j.{Logger, LoggerFactory}
 import zio.{Has, ZIO, ZManaged}
 
 case class PrimerNumberClientImpl() extends PrimeNumberClient {
 
-  private val logger: Logger = LogManager.getLogger(classOf[PrimerNumberClientImpl])
+  private val logger: Logger = LoggerFactory.getLogger(classOf[PrimerNumberClientImpl])
 
   /**
    * Since I don't have enough time, I don't put properly the config properties in property files.
