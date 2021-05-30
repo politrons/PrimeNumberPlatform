@@ -15,5 +15,9 @@ If any integration test fail, we must reproduce the bug in the unit test, in ord
 * **Integration** test is also run by maven life-cycle in integration-test phase using scalstest.
 in case you want to run it by IDE you can find the test [here](src/test/scala/com/politrons/it/PrimeNumberPlatformSpec.scala)
 
-* **Performance test** TODO
+* **Performance test** Performance test are not working properly for now, since it seems the gatling version that I'm using is not
+supporting http2.0 and I dont have the time to upgrade to one of the latest version, because I would have to deal 
+  with clash library conflicts, specially netty.
+
+
 ![My image](../img/gatling.png)
