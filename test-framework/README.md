@@ -12,7 +12,7 @@ If any integration test fail, we must reproduce the bug in the unit test, in ord
 
 ## How to Test
 
-* **Integration** test is also run by maven life-cycle in integration-test phase using mockito.
+* **Integration** test is also run by maven life-cycle in integration-test phase using scalstest.
 in case you want to run it by IDE you can find the test [here](src/test/scala/com/politrons/it/PrimeNumberPlatformSpec.scala)
 
 * **Performance test** TODO
