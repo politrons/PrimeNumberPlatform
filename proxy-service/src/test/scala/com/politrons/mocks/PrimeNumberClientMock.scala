@@ -2,7 +2,7 @@ package com.politrons.mocks
 
 import com.politrons.grpc.PrimeNumberClient
 import com.twitter.io.{Buf, Reader}
-import com.twitter.util.Await
+import com.twitter.util.{Await, Future}
 import zio.{Has, ZIO, ZManaged}
 
 /**
@@ -18,10 +18,10 @@ case class PrimeNumberClientMock() extends PrimeNumberClient {
     (for {
       writable <- ZManaged.service[Reader.Writable].useNow
       _ <- ZIO.effect {
-          primes.foreach(prime => {
-            println(s"[PrimerNumberClientMock] Prime:$prime ")
-            Await.result(writable.write(Buf.Utf8(prime)))
-          })
+        primes.foldLeft(Future())((future, prime) => {
+          println(s"[PrimerNumberClientMock] Prime:$prime ")
+          future.flatMap(_ => writable.write(Buf.Utf8(prime)))
+        })
       }
     } yield ()).catchAll(t => {
       println(s"[PrimerNumberClientMock] Error: Caused by ${t.getCause} ")
