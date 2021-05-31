@@ -7,6 +7,7 @@ import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContextExecutor, Promise}
+import scala.util.Try
 
 class PrimeNumberPlatformSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfterAll {
 
@@ -39,10 +40,38 @@ class PrimeNumberPlatformSpec extends FeatureSpec with GivenWhenThen with Before
           }
       }
       Then("I receive the prime numbers in the stream")
-      val prime = scala.concurrent.Await.result(promise.future, 300 seconds)
+      val prime = scala.concurrent.Await.result(promise.future, 30 seconds)
       assert(prime != null)
       assert(prime == primeNumberLimit)
     }
+
+    scenario("End to end request to ProxyServer endpoint with wrong number and this one " +
+      "call prime number server by gRPC") {
+      Given("a Finagle client to call ProxyServer")
+
+      val promise: Promise[String] = Promise()
+
+      val client = Http.client
+        .withStreaming(enabled = true)
+        .newService(s"/$$/inet/localhost/$proxyServerPort")
+
+      When("I invoke the endpoint /prime")
+      val primeNumberLimit = "foo"
+
+      client(http.Request(s"/prime/:number", Tuple2("number", primeNumberLimit))).flatMap {
+        response =>
+          if (response.statusCode != 200) promise.failure(new Exception(s"Server error response. Code ${response.statusCode}"))
+          fromReader(response.reader) foreach {
+            case Buf.Utf8(primeNumber) =>
+              println(s"[PrimeNumberPlatformSpec] Prime number:$primeNumber")
+              if (primeNumber == primeNumberLimit) promise.success(primeNumber)
+          }
+      }
+      Then("I receive the prime numbers in the stream")
+      val responseTry = Try(scala.concurrent.Await.result(promise.future, 30 seconds))
+      assert(responseTry.isFailure)
+    }
+
   }
 
   /**

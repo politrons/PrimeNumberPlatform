@@ -6,7 +6,6 @@ import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
 import scala.language.postfixOps
-import scala.util.Try
 
 class PrimeNumberServiceImplSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfterAll {
 
