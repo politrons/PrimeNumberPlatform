@@ -3,7 +3,8 @@ package com.politrons.api
 import com.politrons.grpc.PrimeNumberClient
 import com.politrons.mocks.{PrimeNumberClientMock, PrimerNumberServerMock}
 import com.twitter.concurrent.AsyncStream
-import com.twitter.finagle.{Http, http}
+import com.twitter.finagle.http.{Request, Response}
+import com.twitter.finagle.{Http, Service, http}
 import com.twitter.io.{Buf, Reader}
 import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
 import zio.{Runtime, ZLayer}

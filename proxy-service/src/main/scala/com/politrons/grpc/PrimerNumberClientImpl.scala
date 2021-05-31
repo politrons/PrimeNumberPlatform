@@ -1,6 +1,7 @@
 package com.politrons.grpc
 
 import com.twitter.io.{Buf, Reader}
+import com.twitter.util.Await
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
 import org.apache.commons.lang3.exception.ExceptionUtils
@@ -56,9 +57,7 @@ case class PrimerNumberClientImpl() extends PrimeNumberClient {
     stub.findPrimeNumbers(new StreamObserver[PrimeNumberResponse]() {
       override def onNext(response: PrimeNumberResponse): Unit = {
         logger.debug(s"[PrimerNumberClientImpl] response:$response")
-        writable.write(Buf.Utf8(response.getValue))
-        //TODO:I´ve been forced to delay each response in the stream, otherwise the client cannot consume continuously
-        Thread.sleep(500)
+        Await.result(writable.write(Buf.Utf8(response.getValue)))
       }
 
       override def onError(t: Throwable): Unit = {
