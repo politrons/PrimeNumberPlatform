@@ -195,8 +195,8 @@
                             <arguments>
                                 <argument>java</argument>
                                 <argument>-XX:+HeapDumpOnOutOfMemoryError</argument>
-                                <argument>-Xmx256M</argument>
-                                <argument>-Xms128M</argument>
+                                <argument>-Xmx1024M</argument>
+                                <argument>-Xms1024M</argument>
                                 <argument>-Xss1M</argument>
                                 <argument>-XX:+UseParallelGC</argument>
                                 <argument>-cp</argument>
@@ -216,8 +216,8 @@
                             <arguments>
                                 <argument>java</argument>
                                 <argument>-XX:+HeapDumpOnOutOfMemoryError</argument>
-                                <argument>-Xmx256M</argument>
-                                <argument>-Xms128M</argument>
+                                <argument>-Xmx1024M</argument>
+                                <argument>-Xms1024M</argument>
                                 <argument>-Xss1M</argument>
                                 <argument>-XX:+UseParallelGC</argument>
                                 <argument>-cp</argument>

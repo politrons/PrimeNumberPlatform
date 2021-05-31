@@ -30,11 +30,11 @@ class PrimeNumberPlatformSpec extends FeatureSpec with GivenWhenThen with Before
         .newService(s"/$$/inet/localhost/$proxyServerPort")
 
       When("I invoke the endpoint /prime")
-      val primeNumberLimit = "17"
+      val primeNumberLimit = "31183"
 
       runRequest(client, primeNumberLimit, promise)
       Then("I receive the prime numbers in the stream")
-      val prime = scala.concurrent.Await.result(promise.future, 30 seconds)
+      val prime = scala.concurrent.Await.result(promise.future, 60 seconds)
       assert(prime != null)
       assert(prime == primeNumberLimit)
     }
