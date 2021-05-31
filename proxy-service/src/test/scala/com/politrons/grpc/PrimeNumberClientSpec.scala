@@ -8,6 +8,7 @@ import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
 import zio.{Has, Runtime, ZIO, ZLayer}
 
 import java.nio.charset.Charset
+import scala.util.Try
 
 class PrimeNumberClientSpec extends FeatureSpec with GivenWhenThen with BeforeAndAfterAll {
 
@@ -20,6 +21,7 @@ class PrimeNumberClientSpec extends FeatureSpec with GivenWhenThen with BeforeAn
   }
 
   feature("PrimeNumberClientSpec to make a rpc connection against a mock to prove it works ") {
+
     scenario("Invoke the connector to Make a call to the function [findPrimeNumbers]" +
       "it return a ZIO program ZIO[Has[Reader.Writable], Throwable, Unit] then we evaluate " +
       "the program and we check some data has been written") {
@@ -36,6 +38,22 @@ class PrimeNumberClientSpec extends FeatureSpec with GivenWhenThen with BeforeAn
       assert(maybeBuf.isDefined)
       val primeNumberResponse = Buf.decodeString(maybeBuf.get, Charset.defaultCharset())
       assert(primeNumberResponse == primeNumber)
+    }
+
+    scenario("Invoke the connector to Make a call to the function [findPrimeNumbers]" +
+      "with a wrong number. it return a ZIO program ZIO[Has[Reader.Writable], Throwable, Unit] " +
+      "then we evaluate the program and a Throwable is returned ") {
+      Given("A Prime number program and Reader.Writable")
+      val primeNumber = "foo"
+      val findPrimeNumbersProgram: ZIO[Has[Reader.Writable], Throwable, Unit] =
+        PrimerNumberClientImpl().findPrimeNumbers(primeNumber)
+      val writable: Reader.Writable = Reader.writable()
+      When("I run the program passing the [Writable] dependency")
+      Runtime.global.unsafeRun(findPrimeNumbersProgram.provideLayer(ZLayer.succeed(writable)))
+      Then("The Writable contain some data")
+      val future: Future[Option[Buf]] = writable.read(Int.MaxValue)
+      val triedMaybeBuf = Try(Await.result(future))
+      assert(triedMaybeBuf.isFailure)
     }
   }
 }

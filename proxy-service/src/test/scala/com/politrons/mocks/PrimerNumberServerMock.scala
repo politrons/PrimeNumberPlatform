@@ -4,6 +4,8 @@ import com.politrons.grpc.{PrimeNumberRequest, PrimeNumberResponse, PrimeNumberS
 import io.grpc.stub.StreamObserver
 import io.grpc.{Server, ServerBuilder}
 
+import scala.util.Try
+
 /**
  * Mock server to emulate the real one of PrimeNumberService module
  * The only thing it will do is just make an echo of whatever we send to him.
@@ -18,8 +20,9 @@ object PrimerNumberServerMock {
         .addService(new PrimeNumberServiceGrpc.PrimeNumberServiceImplBase {
           override def findPrimeNumbers(responseObserver: StreamObserver[PrimeNumberResponse]): StreamObserver[PrimeNumberRequest] = {
             new StreamObserver[PrimeNumberRequest]() {
-              override def onNext(value: PrimeNumberRequest): Unit = {
-                val response: PrimeNumberResponse = PrimeNumberResponse.newBuilder.setValue(value.getAttr).build
+              override def onNext(numberRequest: PrimeNumberRequest): Unit = {
+                require(Try(numberRequest.getAttr.toInt).isSuccess, "Prime number value must be numeric")
+                val response: PrimeNumberResponse = PrimeNumberResponse.newBuilder.setValue(numberRequest.getAttr).build
                 responseObserver.onNext(response)
               }
 
@@ -37,7 +40,7 @@ object PrimerNumberServerMock {
         .start()
   }
 
-  def stop(): Unit ={
+  def stop(): Unit = {
     server.shutdown()
   }
 

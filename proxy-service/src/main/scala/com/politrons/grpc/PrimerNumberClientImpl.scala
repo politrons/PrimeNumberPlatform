@@ -62,7 +62,7 @@ case class PrimerNumberClientImpl() extends PrimeNumberClient {
 
       override def onError(t: Throwable): Unit = {
         logger.error(s"[PrimerNumberClientImpl] Error in StreamObserver. Caused by ${ExceptionUtils.getStackTrace(t)}")
-        throw t
+        writable.fail(t)
       }
 
       override def onCompleted(): Unit = {

@@ -8,7 +8,7 @@ import zio.{Has, ZIO, ZManaged}
 /**
  * Mock class to emulate the real PrimeNumberClientImpl.
  * I could use scalaMock, but due of the lack of time, this a faster solution but of course
- * most verbose.
+ * more verbose.
  */
 case class PrimeNumberClientMock() extends PrimeNumberClient {
 
