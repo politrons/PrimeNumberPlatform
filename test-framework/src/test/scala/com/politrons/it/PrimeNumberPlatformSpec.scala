@@ -1,8 +1,10 @@
 package com.politrons.it
 
 import com.twitter.concurrent.AsyncStream
-import com.twitter.finagle.{Http, http}
+import com.twitter.finagle.http.{Request, Response}
+import com.twitter.finagle.{Http, Service, http}
 import com.twitter.io.{Buf, Reader}
+import com.twitter.util.Future
 import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
 
 import scala.concurrent.duration._
@@ -30,15 +32,7 @@ class PrimeNumberPlatformSpec extends FeatureSpec with GivenWhenThen with Before
       When("I invoke the endpoint /prime")
       val primeNumberLimit = "17"
 
-      client(http.Request(s"/prime/:number", Tuple2("number", primeNumberLimit))).flatMap {
-        response =>
-          if (response.statusCode != 200) promise.failure(new Exception(s"Server error response. Code ${response.statusCode}"))
-          fromReader(response.reader) foreach {
-            case Buf.Utf8(primeNumber) =>
-              println(s"[PrimeNumberPlatformSpec] Prime number:$primeNumber")
-              if (primeNumber == primeNumberLimit) promise.success(primeNumber)
-          }
-      }
+      runRequest(client, primeNumberLimit, promise)
       Then("I receive the prime numbers in the stream")
       val prime = scala.concurrent.Await.result(promise.future, 30 seconds)
       assert(prime != null)
@@ -58,20 +52,26 @@ class PrimeNumberPlatformSpec extends FeatureSpec with GivenWhenThen with Before
       When("I invoke the endpoint /prime")
       val primeNumberLimit = "foo"
 
-      client(http.Request(s"/prime/:number", Tuple2("number", primeNumberLimit))).flatMap {
-        response =>
-          if (response.statusCode != 200) promise.failure(new Exception(s"Server error response. Code ${response.statusCode}"))
-          fromReader(response.reader) foreach {
-            case Buf.Utf8(primeNumber) =>
-              println(s"[PrimeNumberPlatformSpec] Prime number:$primeNumber")
-              if (primeNumber == primeNumberLimit) promise.success(primeNumber)
-          }
-      }
+      runRequest(client, primeNumberLimit, promise)
       Then("I receive the prime numbers in the stream")
       val responseTry = Try(scala.concurrent.Await.result(promise.future, 30 seconds))
       assert(responseTry.isFailure)
     }
 
+  }
+
+  private def runRequest(client: Service[Request, Response],
+                         primeNumberLimit: String,
+                         promise: Promise[String]): Future[Unit] = {
+    client(http.Request(s"/prime/:number", Tuple2("number", primeNumberLimit))).flatMap {
+      response =>
+        if (response.statusCode != 200) promise.failure(new Exception(s"Server error response. Code ${response.statusCode}"))
+        fromReader(response.reader) foreach {
+          case Buf.Utf8(primeNumber) =>
+            println(s"[PrimeNumberPlatformSpec] Prime number:$primeNumber")
+            if (primeNumber == primeNumberLimit) promise.success(primeNumber)
+        }
+    }
   }
 
   /**
